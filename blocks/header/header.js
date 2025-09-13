@@ -113,8 +113,9 @@ export function decorateNavAuth() {
 
 // --- Sprachwahl: Konfiguration & Utilities ---
 const LOCALES = [
-  { code: 'de', label: 'Deutsch', prefix: '/de' },
+  
   { code: 'en', label: 'English', prefix: '/en' },
+	{ code: 'de', label: 'Deutsch', prefix: '/de' }
   // Optional weitere Sprachen:
   // { code: 'fr', label: 'Français', prefix: '/fr' },
 ];
