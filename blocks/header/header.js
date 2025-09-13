@@ -107,6 +107,77 @@ export function decorateNavAuth() {
   });
 }
 
+
+
+
+
+// --- Sprachwahl: Konfiguration & Utilities ---
+const LOCALES = [
+  { code: 'de', label: 'Deutsch', prefix: '/de' },
+  { code: 'en', label: 'English', prefix: '/en' },
+  // Optional weitere Sprachen:
+  // { code: 'fr', label: 'Français', prefix: '/fr' },
+];
+
+function getCurrentLocaleCode() {
+  const seg = window.location.pathname.split('/').filter(Boolean)[0] || '';
+  const found = LOCALES.find(l => l.code === seg);
+  return found ? found.code : LOCALES[0].code; // Fallback auf erste definierte Sprache
+}
+
+function buildLocalizedUrl(targetCode) {
+  const url = new URL(window.location.href);
+  const parts = url.pathname.split('/').filter(Boolean);
+  const hasLocale = LOCALES.some(l => l.code === (parts[0] || ''));
+  if (hasLocale) {
+    parts[0] = targetCode; // ersetze vorhandenes Sprachpräfix
+  } else {
+    parts.unshift(targetCode); // füge Präfix hinzu
+  }
+  url.pathname = '/' + parts.join('/');
+  return url.toString();
+}
+
+function createLanguageSwitcher() {
+  const wrapper = document.createElement('div');
+  wrapper.className = 'nav-locale';
+
+  const label = document.createElement('label');
+  label.setAttribute('for', 'locale-select');
+  label.className = 'visually-hidden';
+  label.textContent = 'Sprache auswählen';
+
+  const select = document.createElement('select');
+  select.id = 'locale-select';
+  select.setAttribute('aria-label', 'Sprache');
+
+  const current = getCurrentLocaleCode();
+  LOCALES.forEach(({ code, label: optionLabel }) => {
+    const opt = document.createElement('option');
+    opt.value = code;
+    opt.textContent = optionLabel;
+    if (code === current) opt.selected = true;
+    select.appendChild(opt);
+  });
+
+  select.addEventListener('change', (e) => {
+    const target = e.target.value;
+    window.location.href = buildLocalizedUrl(target);
+  });
+
+  wrapper.append(label, select);
+  return wrapper;
+}
+
+
+
+
+
+
+
+
+
+
 /**
  * decorates the header, mainly the nav
  * @param {Element} block The header block element
@@ -167,6 +238,15 @@ export default async function decorate(block) {
   const auth = document.createElement('div');
   auth.classList.add('nav-auth');
   // console.log(getActiveAudiences());
+  
+  
+// >>> NEU: Sprachwahl-Element erzeugen und zusammen mit auth in .nav-tools einhängen
+const toolsContainer = nav.querySelector('.nav-tools') || nav;
+const localeSwitcher = createLanguageSwitcher();
+toolsContainer.append(localeSwitcher);
+
+  
+  
   if (window.localStorage.getItem('auth') === null) {
     auth.innerHTML = LOGIN_FORM;
     auth.addEventListener('click', () => {
@@ -205,7 +285,13 @@ export default async function decorate(block) {
     });
   }
 
-  nav.append(auth);
+  //RUG  nav.append(auth);
+
+	
+// Wichtig: auth in den Tools-Container, nicht direkt an nav
+toolsContainer.append(auth);
+
+
 
   const navWrapper = document.createElement('div');
   navWrapper.className = 'nav-wrapper';
