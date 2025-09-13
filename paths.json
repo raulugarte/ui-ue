@@ -1,8 +1,8 @@
 {
   "mappings": [
-    "/content/ui-ue/:/",
-    "/content/ui-ue/placeholders:/placeholders.json",
-    "/content/ui-ue/loans/mortgagecalc:/mortgagecalc.json",
+    "/content/ui-ue/language-masters/en/:/",
+    "/content/ui-ue/language-masters/en/placeholders:/placeholders.json",
+    "/content/ui-ue/language-masters/en/loans/mortgagecalc:/mortgagecalc.json",
     "/graphql:/graphql",
     "/content/ui-ue.resource/icons/:/icons/",
     "/content/ui-ue/configuration:/.helix/config.json"
