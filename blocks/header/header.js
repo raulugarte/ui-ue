@@ -112,63 +112,56 @@ export function decorateNavAuth() {
 
 
 // --- Sprachwahl: Konfiguration & Utilities ---
+
 const LOCALES = [
-  
-  { code: 'en', label: 'English', prefix: '/en' },
-	{ code: 'de', label: 'Deutsch', prefix: '/de' }
-  // Optional weitere Sprachen:
-  // { code: 'fr', label: 'Français', prefix: '/fr' },
+  { code: 'de', label: 'Deutsch' },
+  { code: 'en', label: 'English' },
+  // { code: 'fr', label: 'Français' },
 ];
 
+// Ermittelt die aktuelle Sprache: bevorzugt das Segment nach "language-masters"
 function getCurrentLocaleCode() {
-  const seg = window.location.pathname.split('/').filter(Boolean)[0] || '';
-  const found = LOCALES.find(l => l.code === seg);
-  return found ? found.code : LOCALES[0].code; // Fallback auf erste definierte Sprache
+  const parts = window.location.pathname.split('/').filter(Boolean);
+  const lmIdx = parts.indexOf('language-masters');
+  if (lmIdx !== -1 && parts[lmIdx + 1]) {
+    const candidate = parts[lmIdx + 1];
+    if (LOCALES.some(l => l.code === candidate)) return candidate;
+  }
+  // Fallback: erste Pfadkomponente als evtl. Sprachcode
+  const first = parts[0] || '';
+  const found = LOCALES.find(l => l.code === first);
+  return found ? found.code : LOCALES[0].code;
 }
 
+// Baut die Ziel-URL: ersetzt/fügt den Sprachcode hinter "language-masters" ein
 function buildLocalizedUrl(targetCode) {
   const url = new URL(window.location.href);
   const parts = url.pathname.split('/').filter(Boolean);
-  const hasLocale = LOCALES.some(l => l.code === (parts[0] || ''));
-  if (hasLocale) {
-    parts[0] = targetCode; // ersetze vorhandenes Sprachpräfix
+
+  const lmIdx = parts.indexOf('language-masters');
+  if (lmIdx !== -1) {
+    const langIdx = lmIdx + 1;
+    if (parts[langIdx]) {
+      // vorhandenen Sprachordner ersetzen
+      parts[langIdx] = targetCode;
+    } else {
+      // falls keine Sprache vorhanden, direkt hinter language-masters einfügen
+      parts.splice(langIdx, 0, targetCode);
+    }
+    url.pathname = '/' + parts.join('/');
+    return url.toString();
+  }
+
+  // Fallback (wenn kein language-masters im Pfad): erste Komponente als Sprache behandeln
+  if (parts[0] && LOCALES.some(l => l.code === parts[0])) {
+    parts[0] = targetCode;
   } else {
-    parts.unshift(targetCode); // füge Präfix hinzu
+    parts.unshift(targetCode);
   }
   url.pathname = '/' + parts.join('/');
   return url.toString();
 }
 
-function createLanguageSwitcher() {
-  const wrapper = document.createElement('div');
-  wrapper.className = 'nav-locale';
-
-  const label = document.createElement('label');
-  label.setAttribute('for', 'locale-select');
-  label.className = 'visually-hidden';
-  label.textContent = 'Sprache auswählen';
-
-  const select = document.createElement('select');
-  select.id = 'locale-select';
-  select.setAttribute('aria-label', 'Sprache');
-
-  const current = getCurrentLocaleCode();
-  LOCALES.forEach(({ code, label: optionLabel }) => {
-    const opt = document.createElement('option');
-    opt.value = code;
-    opt.textContent = optionLabel;
-    if (code === current) opt.selected = true;
-    select.appendChild(opt);
-  });
-
-  select.addEventListener('change', (e) => {
-    const target = e.target.value;
-    window.location.href = buildLocalizedUrl(target);
-  });
-
-  wrapper.append(label, select);
-  return wrapper;
-}
 
 
 
